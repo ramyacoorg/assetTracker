@@ -1,0 +1,68 @@
+PROJECT NAME:
+AssetTracker – Company Asset Management System
+
+Understanding of Client Requirements:
+
+The client wants a software system to manage company-owned assets and track which asset is currently assigned to which employee. 
+The system should help management monitor asset allocation, availability, maintenance status, and reduce asset loss by maintaining proper digital records.
+
+Creative Freedoms Taken:
+
+• Named the product "AssetTracker".
+• Assumed this system is an internal company application.
+• Designed it as a web-based system for easy access.
+• Introduced role-based access for Admin and Employees.
+• Added features for asset feedback, requests, and visual dashboards.
+• Included notification and alert mechanisms for better asset maintenance.
+
+Assumptions Made:
+
+• Each employee has a unique employee ID.
+• Each asset has a unique asset ID.
+• Only Admin users can assign or reassign assets.
+• One asset can be assigned to only one employee at a time.
+• Employees have limited access based on their role.
+• Asset requests and communications are private between employees and management.
+• The company wants a simple, easy-to-use interface.
+
+Feature List:
+
+Employee Management  
+   Allows management to add, update, and remove employee details.
+
+Asset Management  
+   Enables management to add, update, and track company assets such as laptops, mobiles, and software licenses.
+
+Asset Assignment and Return  
+   Assets can be assigned to employees and marked as returned when no longer in use.
+
+Role-Based User Login  
+   Provides secure login for Admin and Employees. Admins manage assets, while Employees have limited access.
+
+Employee Asset View  
+   Employees can view the list of assets currently assigned to them.
+
+Asset Feedback and Issue Reporting  
+   Employees can submit feedback or report issues related to assigned assets, which is visible to management.
+
+Asset Request and Approval System  
+   Employees can request new assets through the system. These requests are visible only to management, who can approve or reject them.
+
+Asset Expiry and Subscription Tracking  
+   Tracks asset warranties, service contracts, and software license expiry dates, with alerts shown to management.
+
+Management Dashboard with Visual Analytics  
+   Displays charts and visual summaries showing asset status such as assigned, available, and under maintenance.
+
+Notification and Alert System  
+    Sends notifications to management for asset issues, expiry alerts, and new asset requests.
+
+Questions for Next Client Meeting:
+
+Do you want more user roles such as Manager or IT Admin?
+Should employees receive notifications for request approvals or asset issues?
+Do you want downloadable reports (PDF/Excel)?
+How detailed should asset history tracking be?
+Are there any compliance or audit requirements for asset records?
+Should asset maintenance tasks be assigned to specific teams?
+give this in time new roman and size of 14
