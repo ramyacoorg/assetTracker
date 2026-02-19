@@ -34,22 +34,22 @@ Asset Management
    Enables management to add, update, and track company assets such as laptops, mobiles, and software licenses.
 
 Asset Assignment and Return  
-   Assets can be assigned to employees and marked as returned when no longer in use.
+   Assets can be assigned to employees and marked as returned when they give back or if they leave the job.
 
 Role-Based User Login  
    Provides secure login for Admin and Employees. Admins manage assets, while Employees have limited access.
 
 Employee Asset View  
-   Employees can view the list of assets currently assigned to them.
+   Employees can view the list of assets currently assigned to them and the avilable asset in company.
 
 Asset Feedback and Issue Reporting  
-   Employees can submit feedback or report issues related to assigned assets, which is visible to management.
+   Employees can submit feedback or report issues related to assigned assets, which is only visible to management.
 
 Asset Request and Approval System  
-   Employees can request new assets through the system. These requests are visible only to management, who can approve or reject them.
+   Employees can request new assets through the system. These requests are visible only to management, who can approve or reject the requests.
 
 Asset Expiry and Subscription Tracking  
-   Tracks asset warranties, service contracts, and software license expiry dates, with alerts shown to management.
+   Tracks asset warranties, service contracts, and software license expiry dates, with alerts shown to management and employee as well.
 
 Management Dashboard with Visual Analytics  
    Displays charts and visual summaries showing asset status such as assigned, available, and under maintenance.

@@ -1,0 +1,5 @@
+version: '3.8'
+services:
+  hello-app:
+    build: .
+    container_name: hello-container
