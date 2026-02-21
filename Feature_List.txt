@@ -29,9 +29,10 @@ Feature List:
 
 Employee Management  
    Allows management to add, update, and remove employee details.
+   storing the employees information like name , ID, department,contact details.
 
 Asset Management  
-   Enables management to add, update, and track company assets such as laptops, mobiles, and software licenses.
+   Enables management to add, update,delete  and track company assets such as laptops, mobiles, and software licenses.
 
 Asset Assignment and Return  
    Assets can be assigned to employees and marked as returned when they give back or if they leave the job.
