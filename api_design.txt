@@ -1,0 +1,60 @@
+ASSET TRACKER - API DESIGN
+
+MODULE 1: ASSET MANAGEMENT
+
+
+1. Feature: Create Asset
+   Method: POST
+   Endpoint: /api/assets/
+   Request Body:
+       - name (string)
+       - type (string)
+       - location (string)
+       - status (string)
+   Response:
+       - id
+       - name
+       - type
+       - location
+       - status
+   Database Action:
+       INSERT new row into assets table.
+
+2. Feature: Get All Assets
+   Method: GET
+   Endpoint: /api/assets/
+   Response:
+       List of all assets
+   Database Action:
+       SELECT * FROM assets
+
+3. Feature: Get Asset by ID
+   Method: GET
+   Endpoint: /api/assets/{asset_id}
+   Path Parameter:
+       - asset_id (integer)
+   Response:
+       Asset object
+   Database Action:
+       SELECT row WHERE id = asset_id
+
+4. Feature: Update Asset
+   Method: PUT
+   Endpoint: /api/assets/{asset_id}
+   Path Parameter:
+       - asset_id
+   Request Body:
+       - name
+       - type
+       - location
+       - status
+   Database Action:
+       UPDATE row WHERE id = asset_id
+
+5. Feature: Delete Asset
+   Method: DELETE
+   Endpoint: /api/assets/{asset_id}
+   Path Parameter:
+       - asset_id
+   Database Action:
+       DELETE row WHERE id = asset_id
