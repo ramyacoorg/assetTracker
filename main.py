@@ -1,8 +1,9 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 import models
 from database import engine
-from routers import users, assets, authentication  # ← authentication not auth
+from routers import users, assets, authentication, profile
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -20,9 +21,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(authentication.router, prefix="/api/auth",   tags=["Auth"])
-app.include_router(users.router,          prefix="/api/users",  tags=["Users"])
-app.include_router(assets.router,         prefix="/api/assets", tags=["Assets"])
+# Serves uploaded photos as URLs
+app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
+
+app.include_router(authentication.router, prefix="/api/auth",    tags=["Auth"])
+app.include_router(users.router,          prefix="/api/users",   tags=["Users"])
+app.include_router(assets.router,         prefix="/api/assets",  tags=["Assets"])
+app.include_router(profile.router,        prefix="/api/profile", tags=["Profile"])
 
 @app.get("/")
 def root():
