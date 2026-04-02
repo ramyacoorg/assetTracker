@@ -32,12 +32,3 @@ def get_db():
         yield db
     finally:
         db.close()
-```
-
-Click **"Commit changes"**!
-
----
-
-## Also update DATABASE_URL in Railway to:
-```
-postgresql://postgres.glvsjlmobgertxkbbjwl:susheela2003@aws-0-ap-southeast-1.pooler.supabase.com:5432/postgres
