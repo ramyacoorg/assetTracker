@@ -1,5 +1,5 @@
 import os
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker, declarative_base
 
 DATABASE_URL = os.getenv(
@@ -11,7 +11,7 @@ engine = create_engine(
     DATABASE_URL,
     connect_args={
         "sslmode": "require",
-        "client_encoding": "utf8"
+        "options": "-c client_encoding=utf8"
     },
     pool_pre_ping=True,
     pool_recycle=300,
