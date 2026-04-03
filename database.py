@@ -4,12 +4,15 @@ from sqlalchemy.orm import sessionmaker, declarative_base
 
 DATABASE_URL = os.getenv(
     "DATABASE_URL",
-    "postgresql://postgres:susheela200@localhost:5432/asset_tracker"
+    "postgresql://postgres:Susheela200@localhost:5432/asset_tracker"
 )
 
 engine = create_engine(
     DATABASE_URL,
-    connect_args={"sslmode": "require"},
+    connect_args={
+        "sslmode": "require",
+        "client_encoding": "utf8"
+    },
     pool_pre_ping=True,
     pool_recycle=300,
     pool_timeout=30
