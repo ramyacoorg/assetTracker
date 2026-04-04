@@ -1,70 +1,62 @@
-
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel
 from datetime import datetime
 from typing import Optional
 
 
-# ============================================================
-# AUTH SCHEMAS
-# Used for login and returning JWT tokens
-# ============================================================
-
 class LoginRequest(BaseModel):
-    # What the user sends when logging in
-    email:    str
+    email: str
     password: str
 
 class TokenResponse(BaseModel):
-    # What we send back after successful login
     access_token: str
-    token_type:   str = "bearer"
-    role:         str  # so frontend knows if admin or employee
-
-
-# ============================================================
-# USER SCHEMAS
-# ============================================================
+    token_type: str = "bearer"
+    role: str
 
 class UserCreate(BaseModel):
-    # What is needed to create a new user
     full_name: str
-    email:     str
-    password:  str       # plain password (we hash it in the router)
-    role_id:   int       # 1 = admin, 2 = employee
-
+    email: str
+    password: str
+    role_id: int
 
 class UserResponse(BaseModel):
-    # What we send back when returning user data
-    id:         int
-    full_name:  str
-    email:      str
-    is_active:  bool
+    id: int
+    full_name: str
+    email: str
+    is_active: bool
     created_at: datetime
-
     class Config:
-        from_attributes = True  # allows reading from SQLAlchemy models
-
-
-# ============================================================
-# ASSET SCHEMAS
-# ============================================================
+        from_attributes = True
 
 class AssetCreate(BaseModel):
-    # What is needed to create a new asset
-    asset_code:     str
-    asset_name:     str
+    asset_code: str
+    asset_name: str
     asset_category: str
-    asset_status:   str = "available"
+    asset_status: str = "available"
 
+class AssetUpdate(BaseModel):
+    asset_name: Optional[str] = None
+    asset_category: Optional[str] = None
+    asset_status: Optional[str] = None
 
 class AssetResponse(BaseModel):
-    # What we send back when returning asset data
-    id:             int
-    asset_code:     str
-    asset_name:     str
+    id: int
+    asset_code: str
+    asset_name: str
     asset_category: str
-    asset_status:   str
-    created_at:     datetime
+    asset_status: str
+    created_at: datetime
+    class Config:
+        from_attributes = True
 
+class AssignmentCreate(BaseModel):
+    asset_id: int
+    employee_id: int
+
+class AssignmentResponse(BaseModel):
+    id: int
+    asset_id: int
+    employee_id: int
+    assigned_date: datetime
+    status: str
     class Config:
         from_attributes = True
