@@ -4,13 +4,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 import models
 from database import engine
-from routers import users, assets, authentication, profile, issues, dashboard
 
 try:
     models.Base.metadata.create_all(bind=engine)
-    print("Database connected successfully!")
+    print("Database connected!")
 except Exception as e:
-    print(f"Database warning: {e}")
+    print(f"DB warning: {e}")
 
 app = FastAPI(title="OptiAsset API")
 
@@ -22,14 +21,23 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
+try:
+    app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
+except:
+    pass
 
-app.include_router(authentication.router, prefix="/api/auth",      tags=["Auth"])
-app.include_router(users.router,          prefix="/api/users",     tags=["Users"])
-app.include_router(assets.router,         prefix="/api/assets",    tags=["Assets"])
-app.include_router(profile.router,        prefix="/api/profile",   tags=["Profile"])
-app.include_router(issues.router,         prefix="/api/issues",    tags=["Issues"])
-app.include_router(dashboard.router,      prefix="/api/dashboard", tags=["Dashboard"])
+from routers import authentication, users, assets, profile, issues
+try:
+    from routers import dashboard
+    app.include_router(dashboard.router, prefix="/api/dashboard", tags=["Dashboard"])
+except Exception as e:
+    print(f"Dashboard router error: {e}")
+
+app.include_router(authentication.router, prefix="/api/auth",    tags=["Auth"])
+app.include_router(users.router,          prefix="/api/users",   tags=["Users"])
+app.include_router(assets.router,         prefix="/api/assets",  tags=["Assets"])
+app.include_router(profile.router,        prefix="/api/profile", tags=["Profile"])
+app.include_router(issues.router,         prefix="/api/issues",  tags=["Issues"])
 
 @app.get("/")
 def root():
