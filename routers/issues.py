@@ -35,7 +35,7 @@ async def report_issue(
             content = await file.read()
             f.write(content)
 
-        photo_url = f"http://localhost:8000/uploads/{filename}"
+        photo_url = f"https://assettracker-production-e745.up.railway.app/uploads/{filename}"
 
     # Save issue to database
     new_issue = models.AssetIssue(
