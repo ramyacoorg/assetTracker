@@ -7,22 +7,18 @@ import uuid
 
 router = APIRouter()
 UPLOAD_DIR = "uploads"
+RAILWAY_URL = "https://assettracker-production-e745.up.railway.app"
 
-# ============================================================
-# REPORT AN ISSUE WITH OPTIONAL PHOTO
-# POST /api/issues/report
-# ============================================================
 @router.post("/report")
 async def report_issue(
     asset_id: int = Form(...),
     issue_description: str = Form(...),
-    file: UploadFile = File(None),  # photo is optional
+    file: UploadFile = File(None),
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
 ):
     photo_url = None
 
-    # If photo is attached, save it
     if file and file.filename:
         if file.content_type not in ["image/jpeg", "image/png", "image/jpg", "image/webp"]:
             raise HTTPException(status_code=400, detail="Only image files allowed")
@@ -35,9 +31,8 @@ async def report_issue(
             content = await file.read()
             f.write(content)
 
-        photo_url = f"https://assettracker-production-e745.up.railway.app/uploads/{filename}"
+        photo_url = f"{RAILWAY_URL}/uploads/{filename}"
 
-    # Save issue to database
     new_issue = models.AssetIssue(
         asset_id          = asset_id,
         employee_id       = current_user.id,
@@ -57,10 +52,6 @@ async def report_issue(
     }
 
 
-# ============================================================
-# GET ALL ISSUES (Admin only)
-# GET /api/issues/
-# ============================================================
 @router.get("/")
 def get_all_issues(
     db: Session = Depends(get_db),
@@ -76,6 +67,28 @@ def get_all_issues(
             "issue_description": issue.issue_description,
             "issue_status":      issue.issue_status,
             "photo_url":         issue.photo_url,
-            "reported_at":       issue.reported_at,
+            "reported_at":       str(issue.reported_at),
+        })
+    return result
+
+
+@router.get("/my")
+def get_my_issues(
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    issues = db.query(models.AssetIssue).filter(
+        models.AssetIssue.employee_id == current_user.id
+    ).all()
+    result = []
+    for issue in issues:
+        result.append({
+            "id":                issue.id,
+            "asset_id":          issue.asset_id,
+            "employee_id":       issue.employee_id,
+            "issue_description": issue.issue_description,
+            "issue_status":      issue.issue_status,
+            "photo_url":         issue.photo_url,
+            "reported_at":       str(issue.reported_at),
         })
     return result
