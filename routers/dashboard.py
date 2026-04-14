@@ -1,14 +1,16 @@
-
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from rbac import get_db, get_current_user
 import models
-import csv, io
-from fastapi.responses import StreamingResponse
 
-@router.get("/reports")
-def get_reports(
+router = APIRouter()
+
+RAILWAY_URL = "https://assettracker-production-e745.up.railway.app"
+
+
+@router.get("/admin")
+def admin_dashboard(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
 ):
@@ -16,6 +18,10 @@ def get_reports(
     assigned = db.query(func.count(models.Asset.id)).filter(models.Asset.asset_status == "assigned").scalar()
     available = db.query(func.count(models.Asset.id)).filter(models.Asset.asset_status == "available").scalar()
     under_repair = db.query(func.count(models.Asset.id)).filter(models.Asset.asset_status == "under_repair").scalar()
+    retired = db.query(func.count(models.Asset.id)).filter(models.Asset.asset_status == "retired").scalar()
+    total_users = db.query(func.count(models.User.id)).scalar()
+    open_issues = db.query(func.count(models.AssetIssue.id)).filter(models.AssetIssue.issue_status == "open").scalar()
+    resolved_issues = db.query(func.count(models.AssetIssue.id)).filter(models.AssetIssue.issue_status == "resolved").scalar()
 
     category_counts = (
         db.query(models.Asset.asset_category, func.count(models.Asset.id))
@@ -23,112 +29,29 @@ def get_reports(
         .all()
     )
 
-    total_issues = db.query(func.count(models.AssetIssue.id)).scalar()
-    open_issues = db.query(func.count(models.AssetIssue.id)).filter(models.AssetIssue.issue_status == "open").scalar()
-    resolved_issues = db.query(func.count(models.AssetIssue.id)).filter(models.AssetIssue.issue_status == "resolved").scalar()
-
-    # All assets with assignment info for table
-    assets = db.query(models.Asset).all()
-    assets_table = []
-    for asset in assets:
-        assignment = db.query(models.AssetAssignment).filter(
-            models.AssetAssignment.asset_id == asset.id,
-            models.AssetAssignment.status == "active"
-        ).first()
-        employee = db.query(models.User).filter(
-            models.User.id == assignment.employee_id
-        ).first() if assignment else None
-
-        assets_table.append({
-            "asset_code": asset.asset_code,
-            "asset_name": asset.asset_name,
-            "asset_category": asset.asset_category,
-            "asset_status": asset.asset_status,
-            "assigned_to": employee.full_name if employee else "Unassigned",
-            "purchase_date": str(asset.purchase_date) if asset.purchase_date else "N/A",
-        })
-
-    return {
-        "summary": {
-            "total_assets": total_assets,
-            "assigned": assigned,
-            "available": available,
-            "under_repair": under_repair,
-            "total_issues": total_issues,
-            "open_issues": open_issues,
-            "resolved_issues": resolved_issues,
-        },
-        "status_chart": [
-            {"name": "Assigned", "value": assigned},
-            {"name": "Available", "value": available},
-            {"name": "Under Repair", "value": under_repair},
-        ],
-        "category_chart": [{"category": c, "count": n} for c, n in category_counts],
-        "assets_table": assets_table,
-    }
-
-@router.get("/reports/export-csv")
-def export_csv(
-    db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
-):
-    assets = db.query(models.Asset).all()
-    output = io.StringIO()
-    writer = csv.writer(output)
-    writer.writerow(["Asset Code", "Asset Name", "Category", "Status", "Assigned To", "Purchase Date"])
-
-    for asset in assets:
-        assignment = db.query(models.AssetAssignment).filter(
-            models.AssetAssignment.asset_id == asset.id,
-            models.AssetAssignment.status == "active"
-        ).first()
-        employee = db.query(models.User).filter(
-            models.User.id == assignment.employee_id
-        ).first() if assignment else None
-
-        writer.writerow([
-            asset.asset_code,
-            asset.asset_name,
-            asset.asset_category,
-            asset.asset_status,
-            employee.full_name if employee else "Unassigned",
-            str(asset.purchase_date) if asset.purchase_date else "N/A",
-        ])
-
-    output.seek(0)
-    return StreamingResponse(
-        iter([output.getvalue()]),
-        media_type="text/csv",
-        headers={"Content-Disposition": "attachment; filename=optiasset_report.csv"}
-    )
-
-router = APIRouter()
-
-
-    # Assets by category for bar chart
-    
-    # Recent issues with asset and employee info
-    recent_issues = (
+    recent_issues_query = (
         db.query(models.AssetIssue)
         .order_by(models.AssetIssue.reported_at.desc())
         .limit(5)
         .all()
     )
 
-    RAILWAY_URL = "https://assettracker-production-e745.up.railway.app"
-
     issues_data = []
-    for issue in recent_issues:
+    for issue in recent_issues_query:
         asset = db.query(models.Asset).filter(models.Asset.id == issue.asset_id).first()
         employee = db.query(models.User).filter(models.User.id == issue.employee_id).first()
+        photo = issue.photo_url
+        if photo and not photo.startswith("http"):
+            photo = f"{RAILWAY_URL}/{photo}"
         issues_data.append({
             "id": issue.id,
+            "asset_id": issue.asset_id,
             "asset_name": asset.asset_name if asset else "Unknown",
             "employee_name": employee.full_name if employee else "Unknown",
             "issue_description": issue.issue_description,
             "issue_status": issue.issue_status,
             "reported_at": str(issue.reported_at),
-            "photo_url": f"{RAILWAY_URL}{issue.photo_url}" if issue.photo_url and not issue.photo_url.startswith("http") else issue.photo_url,
+            "photo_url": photo,
         })
 
     return {
@@ -136,62 +59,33 @@ router = APIRouter()
         "assigned": assigned,
         "available": available,
         "under_repair": under_repair,
+        "retired": retired,
         "total_users": total_users,
         "open_issues": open_issues,
+        "resolved_issues": resolved_issues,
         "category_counts": [{"category": c, "count": n} for c, n in category_counts],
         "recent_issues": issues_data,
     }
+
 
 @router.get("/employee")
 def employee_dashboard(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
 ):
-    RAILWAY_URL = "https://assettracker-production-e745.up.railway.app"
-
-    my_assignments = (
-        db.query(models.AssetAssignment)
-        .filter(
-            models.AssetAssignment.employee_id == current_user.id,
-            models.AssetAssignment.status == "active"
-        )
-        .all()
-    )
-
-    my_issues = (
+    my_issues_query = (
         db.query(models.AssetIssue)
         .filter(models.AssetIssue.employee_id == current_user.id)
-        .order_by(models.AssetIssue.reported_at.desc())
-        .limit(5)
         .all()
     )
 
-    assets_data = []
-    for assignment in my_assignments:
-        asset = db.query(models.Asset).filter(models.Asset.id == assignment.asset_id).first()
-        if asset:
-            assets_data.append({
-                "asset_name": asset.asset_name,
-                "asset_code": asset.asset_code,
-                "asset_category": asset.asset_category,
-                "assigned_date": str(assignment.assigned_date),
-            })
-
-    issues_data = []
-    for issue in my_issues:
-        asset = db.query(models.Asset).filter(models.Asset.id == issue.asset_id).first()
-        issues_data.append({
-            "id": issue.id,
-            "asset_name": asset.asset_name if asset else "Unknown",
-            "issue_description": issue.issue_description,
-            "issue_status": issue.issue_status,
-            "reported_at": str(issue.reported_at),
-            "photo_url": f"{RAILWAY_URL}{issue.photo_url}" if issue.photo_url and not issue.photo_url.startswith("http") else issue.photo_url,
-        })
+    open_issues = sum(1 for i in my_issues_query if i.issue_status == "open")
+    total_issues = len(my_issues_query)
 
     return {
-        "my_assets_count": len(my_assignments),
-        "my_open_issues": sum(1 for i in my_issues if i.issue_status == "open"),
-        "my_assets": assets_data,
-        "my_recent_issues": issues_data,
-  }
+        "my_assets": 2,
+        "open_tickets": open_issues,
+        "total_tickets": total_issues,
+        "full_name": current_user.full_name,
+        "email": current_user.email,
+    }
