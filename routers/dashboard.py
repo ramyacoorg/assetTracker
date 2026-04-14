@@ -1,14 +1,14 @@
-# routers/dashboard.py
+
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from rbac import get_db, get_current_user
 import models
+import csv, io
+from fastapi.responses import StreamingResponse
 
-router = APIRouter()
-
-@router.get("/admin")
-def admin_dashboard(
+@router.get("/reports")
+def get_reports(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
 ):
@@ -16,16 +16,97 @@ def admin_dashboard(
     assigned = db.query(func.count(models.Asset.id)).filter(models.Asset.asset_status == "assigned").scalar()
     available = db.query(func.count(models.Asset.id)).filter(models.Asset.asset_status == "available").scalar()
     under_repair = db.query(func.count(models.Asset.id)).filter(models.Asset.asset_status == "under_repair").scalar()
-    total_users = db.query(func.count(models.User.id)).scalar()
-    open_issues = db.query(func.count(models.AssetIssue.id)).filter(models.AssetIssue.issue_status == "open").scalar()
 
-    # Assets by category for bar chart
     category_counts = (
         db.query(models.Asset.asset_category, func.count(models.Asset.id))
         .group_by(models.Asset.asset_category)
         .all()
     )
 
+    total_issues = db.query(func.count(models.AssetIssue.id)).scalar()
+    open_issues = db.query(func.count(models.AssetIssue.id)).filter(models.AssetIssue.issue_status == "open").scalar()
+    resolved_issues = db.query(func.count(models.AssetIssue.id)).filter(models.AssetIssue.issue_status == "resolved").scalar()
+
+    # All assets with assignment info for table
+    assets = db.query(models.Asset).all()
+    assets_table = []
+    for asset in assets:
+        assignment = db.query(models.AssetAssignment).filter(
+            models.AssetAssignment.asset_id == asset.id,
+            models.AssetAssignment.status == "active"
+        ).first()
+        employee = db.query(models.User).filter(
+            models.User.id == assignment.employee_id
+        ).first() if assignment else None
+
+        assets_table.append({
+            "asset_code": asset.asset_code,
+            "asset_name": asset.asset_name,
+            "asset_category": asset.asset_category,
+            "asset_status": asset.asset_status,
+            "assigned_to": employee.full_name if employee else "Unassigned",
+            "purchase_date": str(asset.purchase_date) if asset.purchase_date else "N/A",
+        })
+
+    return {
+        "summary": {
+            "total_assets": total_assets,
+            "assigned": assigned,
+            "available": available,
+            "under_repair": under_repair,
+            "total_issues": total_issues,
+            "open_issues": open_issues,
+            "resolved_issues": resolved_issues,
+        },
+        "status_chart": [
+            {"name": "Assigned", "value": assigned},
+            {"name": "Available", "value": available},
+            {"name": "Under Repair", "value": under_repair},
+        ],
+        "category_chart": [{"category": c, "count": n} for c, n in category_counts],
+        "assets_table": assets_table,
+    }
+
+@router.get("/reports/export-csv")
+def export_csv(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    assets = db.query(models.Asset).all()
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(["Asset Code", "Asset Name", "Category", "Status", "Assigned To", "Purchase Date"])
+
+    for asset in assets:
+        assignment = db.query(models.AssetAssignment).filter(
+            models.AssetAssignment.asset_id == asset.id,
+            models.AssetAssignment.status == "active"
+        ).first()
+        employee = db.query(models.User).filter(
+            models.User.id == assignment.employee_id
+        ).first() if assignment else None
+
+        writer.writerow([
+            asset.asset_code,
+            asset.asset_name,
+            asset.asset_category,
+            asset.asset_status,
+            employee.full_name if employee else "Unassigned",
+            str(asset.purchase_date) if asset.purchase_date else "N/A",
+        ])
+
+    output.seek(0)
+    return StreamingResponse(
+        iter([output.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=optiasset_report.csv"}
+    )
+
+router = APIRouter()
+
+
+    # Assets by category for bar chart
+    
     # Recent issues with asset and employee info
     recent_issues = (
         db.query(models.AssetIssue)
