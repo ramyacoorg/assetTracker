@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 import models
 from database import engine
+from routers import assignments, reports
 
 try:
     models.Base.metadata.create_all(bind=engine)
@@ -40,7 +41,8 @@ app.include_router(users.router, prefix="/api/users", tags=["users"])
 app.include_router(profile.router, prefix="/api/profile", tags=["profile"])
 app.include_router(issues.router, prefix="/api/issues", tags=["issues"])
 app.include_router(dashboard.router, prefix="/api/dashboard", tags=["dashboard"])
-
+app.include_router(assignments.router, prefix="/api/assignments", tags=["assignments"])
+app.include_router(reports.router, prefix="/api/reports", tags=["reports"])
 @app.get("/")
 def root():
     return {"message": "OptiAsset API is running! Visit /docs to see all endpoints."}
