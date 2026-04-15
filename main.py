@@ -1,18 +1,11 @@
-import os
+# main.py
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-import models
-from database import engine
-from routers import assignments, reports
+import os
+from routers import authentication, assets, users, profile, issues, dashboard, assignments, reports
 
-try:
-    models.Base.metadata.create_all(bind=engine)
-    print("Database connected!")
-except Exception as e:
-    print(f"DB warning: {e}")
-
-app = FastAPI(title="OptiAsset API")
+app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
@@ -22,27 +15,20 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-try:
-    app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
-except:
-    pass
+os.makedirs("uploads/profiles", exist_ok=True)
+os.makedirs("uploads/issues", exist_ok=True)
 
-from routers import authentication, users, assets, profile, issues, dashboard 
-try:
-    from routers import dashboard
-    app.include_router(dashboard.router, prefix="/api/dashboard", tags=["Dashboard"])
-except Exception as e:
-    print(f"Dashboard router error: {e}")
-# In main.py — verify these lines exist
+app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
-app.include_router(authentication.router, prefix="/api/auth", tags=["auth"])
-app.include_router(assets.router, prefix="/api/assets", tags=["assets"])
-app.include_router(users.router, prefix="/api/users", tags=["users"])
-app.include_router(profile.router, prefix="/api/profile", tags=["profile"])
-app.include_router(issues.router, prefix="/api/issues", tags=["issues"])
-app.include_router(dashboard.router, prefix="/api/dashboard", tags=["dashboard"])
-app.include_router(assignments.router, prefix="/api/assignments", tags=["assignments"])
-app.include_router(reports.router, prefix="/api/reports", tags=["reports"])
+app.include_router(authentication.router, prefix="/api/auth",        tags=["auth"])
+app.include_router(assets.router,         prefix="/api/assets",      tags=["assets"])
+app.include_router(users.router,          prefix="/api/users",       tags=["users"])
+app.include_router(profile.router,        prefix="/api/profile",     tags=["profile"])
+app.include_router(issues.router,         prefix="/api/issues",      tags=["issues"])
+app.include_router(dashboard.router,      prefix="/api/dashboard",   tags=["dashboard"])
+app.include_router(assignments.router,    prefix="/api/assignments", tags=["assignments"])
+app.include_router(reports.router,        prefix="/api/reports",     tags=["reports"])
+
 @app.get("/")
 def root():
-    return {"message": "OptiAsset API is running! Visit /docs to see all endpoints."}
+    return {"message": "OptiAsset API running"}
