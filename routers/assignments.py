@@ -12,7 +12,11 @@ def get_all_assignments(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
 ):
-    assignments = db.query(models.AssetAssignment).all()
+    try:
+        assignments = db.query(models.AssetAssignment).all()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"DB error: {str(e)}")
+
     result = []
     for a in assignments:
         asset    = db.query(models.Asset).filter(models.Asset.id == a.asset_id).first()
@@ -36,26 +40,30 @@ def get_my_assignments(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
 ):
-    assignments = (
-        db.query(models.AssetAssignment)
-        .filter(
-            models.AssetAssignment.employee_id == current_user.id,
-            models.AssetAssignment.status == "active"
+    try:
+        assignments = (
+            db.query(models.AssetAssignment)
+            .filter(
+                models.AssetAssignment.employee_id == current_user.id,
+                models.AssetAssignment.status == "active"
+            )
+            .all()
         )
-        .all()
-    )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"DB error: {str(e)}")
+
     result = []
     for a in assignments:
         asset = db.query(models.Asset).filter(models.Asset.id == a.asset_id).first()
         if asset:
             result.append({
-                "id":            a.id,
-                "asset_id":      asset.id,
-                "asset_name":    asset.asset_name,
-                "asset_code":    asset.asset_code,
+                "id":             a.id,
+                "asset_id":       asset.id,
+                "asset_name":     asset.asset_name,
+                "asset_code":     asset.asset_code,
                 "asset_category": asset.asset_category,
-                "asset_status":  asset.asset_status,
-                "assigned_date": str(a.assigned_date),
+                "asset_status":   asset.asset_status,
+                "assigned_date":  str(a.assigned_date),
             })
     return result
 
@@ -65,13 +73,17 @@ def assign_asset(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
 ):
-    asset = db.query(models.Asset).filter(models.Asset.id == payload["asset_id"]).first()
+    asset = db.query(models.Asset).filter(
+        models.Asset.id == payload["asset_id"]
+    ).first()
     if not asset:
         raise HTTPException(status_code=404, detail="Asset not found")
     if asset.asset_status == "assigned":
         raise HTTPException(status_code=400, detail="Asset already assigned")
 
-    employee = db.query(models.User).filter(models.User.id == payload["employee_id"]).first()
+    employee = db.query(models.User).filter(
+        models.User.id == payload["employee_id"]
+    ).first()
     if not employee:
         raise HTTPException(status_code=404, detail="Employee not found")
 
@@ -109,7 +121,9 @@ def return_asset(
     assignment.status      = "returned"
     assignment.return_date = date.today()
 
-    asset = db.query(models.Asset).filter(models.Asset.id == assignment.asset_id).first()
+    asset = db.query(models.Asset).filter(
+        models.Asset.id == assignment.asset_id
+    ).first()
     if asset:
         asset.asset_status = "available"
 
