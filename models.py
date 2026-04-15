@@ -1,7 +1,8 @@
-from sqlalchemy import Column, Integer, String, DateTime, Boolean, ForeignKey, Text
+from sqlalchemy import Column, Integer, String, DateTime, Boolean, ForeignKey, Text,Date
 from sqlalchemy.orm import relationship
 from database import Base
 from datetime import datetime
+from sqlalchemy.sql import func
 
 
 class Role(Base):
