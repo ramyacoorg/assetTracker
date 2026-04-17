@@ -3,9 +3,9 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 import os
-from routers import authentication, assets, users, profile, issues, dashboard, assignments, reports
+from routers import authentication, assets, users, profile, issues, dashboard, assignments, reports, audit, qr, hr
 
-app = FastAPI()
+app = FastAPI(title="Assentra API")
 
 app.add_middleware(
     CORSMiddleware,
@@ -20,15 +20,18 @@ os.makedirs("uploads/issues", exist_ok=True)
 
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
-app.include_router(authentication.router, prefix="/api/auth",        tags=["auth"])
-app.include_router(assets.router,         prefix="/api/assets",      tags=["assets"])
-app.include_router(users.router,          prefix="/api/users",       tags=["users"])
-app.include_router(profile.router,        prefix="/api/profile",     tags=["profile"])
-app.include_router(issues.router,         prefix="/api/issues",      tags=["issues"])
-app.include_router(dashboard.router,      prefix="/api/dashboard",   tags=["dashboard"])
-app.include_router(assignments.router,    prefix="/api/assignments", tags=["assignments"])
-app.include_router(reports.router,        prefix="/api/reports",     tags=["reports"])
+app.include_router(authentication.router, prefix="/api/auth",          tags=["auth"])
+app.include_router(assets.router,         prefix="/api/assets",        tags=["assets"])
+app.include_router(users.router,          prefix="/api/users",         tags=["users"])
+app.include_router(profile.router,        prefix="/api/profile",       tags=["profile"])
+app.include_router(issues.router,         prefix="/api/issues",        tags=["issues"])
+app.include_router(dashboard.router,      prefix="/api/dashboard",     tags=["dashboard"])
+app.include_router(assignments.router,    prefix="/api/assignments",   tags=["assignments"])
+app.include_router(reports.router,        prefix="/api/reports",       tags=["reports"])
+app.include_router(audit.router,          prefix="/api/audit",         tags=["audit"])
+app.include_router(qr.router,             prefix="/api/qr",            tags=["qr"])
+app.include_router(hr.router,             prefix="/api/hr",            tags=["hr"])
 
 @app.get("/")
 def root():
-    return {"message": "OptiAsset API running"}
+    return {"message": "Assentra API running"}

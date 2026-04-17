@@ -44,6 +44,11 @@ class Asset(Base):
     asset_category = Column(String(100), nullable=False)
     asset_status   = Column(String(50), default="available")
     purchase_date  = Column(DateTime, nullable=True)
+    qr_code        = Column(String(500), nullable=True)
+    qr_value       = Column(String(100), unique=True, nullable=True)
+    last_service_date = Column(Date, nullable=True)
+    repair_count   = Column(Integer, default=0)
+    last_used_date = Column(Date, nullable=True)
     created_at     = Column(DateTime, default=datetime.utcnow)
 
 class AssetIssue(Base):
@@ -64,3 +69,19 @@ class AssetAssignment(Base):
     assigned_date = Column(Date, nullable=False)
     return_date   = Column(Date, nullable=True)
     status        = Column(String(50), default="active")
+
+class AuditLog(Base):
+    __tablename__ = "audit_logs"
+    id          = Column(Integer, primary_key=True, index=True)
+    user_id     = Column(Integer, ForeignKey("users.id"), nullable=True)
+    action      = Column(String(100), nullable=False)
+    asset_id    = Column(Integer, ForeignKey("assets.id"), nullable=True)
+    description = Column(Text, nullable=True)
+    timestamp   = Column(DateTime, default=datetime.utcnow)
+
+class ExitChecklist(Base):
+    __tablename__ = "exit_checklists"
+    id          = Column(Integer, primary_key=True, index=True)
+    employee_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    asset_id    = Column(Integer, ForeignKey("assets.id"), nullable=False)
+    status      = Column(String(50), default="Pending")

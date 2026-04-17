@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from datetime import datetime
+from datetime import datetime, date
 from typing import Optional
 
 
@@ -33,12 +33,18 @@ class AssetCreate(BaseModel):
     asset_category: str
     asset_status: str = "available"
     purchase_date: Optional[str] = None
+    last_service_date: Optional[str] = None
+    repair_count: int = 0
+    last_used_date: Optional[str] = None
 
 class AssetUpdate(BaseModel):
     asset_name: Optional[str] = None
     asset_category: Optional[str] = None
     asset_status: Optional[str] = None
     purchase_date: Optional[str] = None
+    last_service_date: Optional[str] = None
+    repair_count: Optional[int] = None
+    last_used_date: Optional[str] = None
 
 class AssetResponse(BaseModel):
     id: int
@@ -47,7 +53,30 @@ class AssetResponse(BaseModel):
     asset_category: str
     asset_status: str
     purchase_date: Optional[datetime] = None
+    qr_code: Optional[str] = None
+    qr_value: Optional[str] = None
+    last_service_date: Optional[date] = None
+    repair_count: int
+    last_used_date: Optional[date] = None
     created_at: datetime
+    class Config:
+        from_attributes = True
+
+class AuditLogResponse(BaseModel):
+    id: int
+    user_id: Optional[int] = None
+    action: str
+    asset_id: Optional[int] = None
+    description: Optional[str] = None
+    timestamp: datetime
+    class Config:
+        from_attributes = True
+
+class ExitChecklistResponse(BaseModel):
+    id: int
+    employee_id: int
+    asset_id: int
+    status: str
     class Config:
         from_attributes = True
 
