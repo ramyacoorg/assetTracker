@@ -48,6 +48,14 @@ async def report_issue(
     db.refresh(issue)
 
     asset = db.query(models.Asset).filter(models.Asset.id == issue.asset_id).first()
+    
+    # Simulated Email Notification
+    print("\n" + "="*50)
+    print("📧 [MOCK EMAIL SERVICE] -> Sent to: admins@optiasset.local")
+    print(f"Subject: New Issue Reported - Asset #{issue.asset_id}")
+    print(f"Body: User #{issue.employee_id} reported an issue with asset '{asset.asset_name if asset else 'Unknown'}'.")
+    print(f"Description: {issue.issue_description}")
+    print("="*50 + "\n")
 
     return {
         "id": issue.id,
