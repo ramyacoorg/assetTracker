@@ -32,11 +32,13 @@ class AssetCreate(BaseModel):
     asset_name: str
     asset_category: str
     asset_status: str = "available"
+    purchase_date: Optional[str] = None
 
 class AssetUpdate(BaseModel):
     asset_name: Optional[str] = None
     asset_category: Optional[str] = None
     asset_status: Optional[str] = None
+    purchase_date: Optional[str] = None
 
 class AssetResponse(BaseModel):
     id: int
@@ -44,6 +46,7 @@ class AssetResponse(BaseModel):
     asset_name: str
     asset_category: str
     asset_status: str
+    purchase_date: Optional[datetime] = None
     created_at: datetime
     class Config:
         from_attributes = True

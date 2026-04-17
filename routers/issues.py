@@ -118,6 +118,9 @@ def update_issue_status(
     issue = db.query(models.AssetIssue).filter(models.AssetIssue.id == issue_id).first()
     if not issue:
         raise HTTPException(status_code=404, detail="Issue not found")
-    issue.issue_status = payload["issue_status"]
+    new_status = payload.get("status") or payload.get("issue_status")
+    if not new_status:
+        raise HTTPException(status_code=422, detail="Missing 'status' field")
+    issue.issue_status = new_status
     db.commit()
     return {"message": "Status updated", "issue_status": issue.issue_status}

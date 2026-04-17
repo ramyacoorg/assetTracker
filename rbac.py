@@ -9,12 +9,14 @@ from jose import JWTError, jwt
 from database import SessionLocal
 import models
 
+import os
+
 # ============================================================
 # CONFIGURATION
 # SECRET_KEY is used to sign the JWT token
-# Never share this in real projects! Put it in .env file
+# Set SECRET_KEY env var in Railway — never hardcode in prod!
 # ============================================================
-SECRET_KEY = "your_super_secret_key_change_this"
+SECRET_KEY = os.getenv("SECRET_KEY", "your_super_secret_key_change_this")
 ALGORITHM  = "HS256"
 
 # This tells FastAPI: "tokens come from /api/auth/login"

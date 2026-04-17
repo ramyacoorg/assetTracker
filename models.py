@@ -64,4 +64,3 @@ class AssetAssignment(Base):
     assigned_date = Column(Date, nullable=False)
     return_date   = Column(Date, nullable=True)
     status        = Column(String(50), default="active")
-    created_at    = Column(DateTime, default=datetime.utcnow)

@@ -53,7 +53,14 @@ def admin_dashboard(
             "photo_url": photo,
         })
 
+    photo_url = current_user.photo_url
+    if photo_url and not photo_url.startswith("http"):
+        photo_url = f"{RAILWAY_URL}/{photo_url}"
+
     return {
+        "full_name": current_user.full_name,
+        "email": current_user.email,
+        "photo_url": photo_url,
         "total_assets": total_assets,
         "assigned": assigned,
         "available": available,

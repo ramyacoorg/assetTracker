@@ -4,17 +4,19 @@ import os
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker, declarative_base
 
-DATABASE_URL = os.getenv(
-    "DATABASE_URL",
-    "postgresql://postgres:Susheela200@localhost:5432/asset_tracker"
+_db_url_from_env = os.getenv("DATABASE_URL")
+DATABASE_URL = _db_url_from_env or "postgresql://postgres:Susheela200@localhost:5432/asset_tracker"
+
+# Only force SSL for cloud databases (Railway/Supabase), not local dev
+_connect_args = (
+    {"sslmode": "require", "options": "-c client_encoding=utf8"}
+    if _db_url_from_env
+    else {}
 )
 
 engine = create_engine(
     DATABASE_URL,
-    connect_args={
-        "sslmode": "require",
-        "options": "-c client_encoding=utf8"
-    },
+    connect_args=_connect_args,
     pool_pre_ping=True,
     pool_recycle=300,
     pool_timeout=30
