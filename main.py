@@ -9,7 +9,7 @@ import models
 from database import engine, Base
 
 # Create tables on startup
-Base.metadata.create_all(bind=engine)
+# Base.metadata.create_all(bind=engine) # Moved inside startup for safety
 
 app = FastAPI(title="Assentra API")
 
@@ -17,6 +17,16 @@ app = FastAPI(title="Assentra API")
 def startup_populate():
     from sqlalchemy.orm import Session
     from database import SessionLocal
+    
+    # Attempt to create tables
+    try:
+        print("Connecting to database and creating tables...")
+        Base.metadata.create_all(bind=engine)
+        print("Database tables verified/created.")
+    except Exception as e:
+        print(f"DATABASE CONNECTION ERROR: {e}")
+        print("App will start, but database features will fail until connection is fixed.")
+
     db: Session = SessionLocal()
     try:
         # Seed Roles if empty

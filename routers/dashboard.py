@@ -6,8 +6,9 @@ from datetime import datetime, timedelta
 from rbac import get_db, get_current_user
 import models
 
+import os
 router = APIRouter()
-RAILWAY_URL = "https://assettracker-production-e745.up.railway.app"
+RAILWAY_URL = os.getenv("RAILWAY_URL", "http://localhost:8000")
 
 @router.get("/admin")
 def admin_dashboard(
