@@ -11,7 +11,7 @@ load_dotenv()  # Load .env file
 # Railway's Variables UI may store the raw password value, causing double-@ parse errors.
 # We use individual component env vars so urllib.parse.quote handles encoding correctly.
 _db_host     = os.getenv("DB_HOST",     "db.glvsjlmobgertxkbbjwl.supabase.co")
-_db_port     = os.getenv("DB_PORT",     "5432")
+_db_port     = os.getenv("DB_PORT",     "6543")  # 6543 = Supabase connection pooler
 _db_name     = os.getenv("DB_NAME",     "postgres")
 _db_user     = os.getenv("DB_USER",     "postgres")
 _db_password = os.getenv("DB_PASSWORD", "ramyasuresh2003")
@@ -28,7 +28,9 @@ engine = create_engine(
     connect_args=_connect_args,
     pool_pre_ping=True,
     pool_recycle=300,
-    pool_timeout=30
+    pool_timeout=30,
+    pool_size=3,
+    max_overflow=2,
 )
 
 SessionLocal = sessionmaker(
