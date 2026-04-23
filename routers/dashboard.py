@@ -1,7 +1,8 @@
 # routers/dashboard.py
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from sqlalchemy import func
+from sqlalchemy import func, extract
+from datetime import datetime, timedelta
 from rbac import get_db, get_current_user
 import models
 
@@ -21,6 +22,17 @@ def admin_dashboard(
     total_users    = db.query(func.count(models.User.id)).scalar() or 0
     open_issues    = db.query(func.count(models.AssetIssue.id)).filter(models.AssetIssue.issue_status == "open").scalar() or 0
     resolved_issues = db.query(func.count(models.AssetIssue.id)).filter(models.AssetIssue.issue_status == "resolved").scalar() or 0
+
+    # Prediction & Underutilized Pipeline Logic
+    thirty_days_ago = datetime.utcnow().date() - timedelta(days=30)
+    underutilized = db.query(func.count(models.Asset.id)).filter(
+        models.Asset.last_used_date < thirty_days_ago,
+        models.Asset.asset_status == "available"
+    ).scalar() or 0
+
+    high_risk = db.query(func.count(models.Asset.id)).filter(models.Asset.repair_count >= 3).scalar() or 0
+    medium_risk = db.query(func.count(models.Asset.id)).filter(models.Asset.repair_count.in_([1, 2])).scalar() or 0
+    low_risk = db.query(func.count(models.Asset.id)).filter(models.Asset.repair_count == 0).scalar() or 0
 
     category_counts = (
         db.query(models.Asset.asset_category, func.count(models.Asset.id))
@@ -69,6 +81,12 @@ def admin_dashboard(
         "total_users": total_users,
         "open_issues": open_issues,
         "resolved_issues": resolved_issues,
+        "underutilized_assets": underutilized,
+        "prediction_metrics": {
+            "high_risk": high_risk,
+            "medium_risk": medium_risk,
+            "low_risk": low_risk
+        },
         "category_counts": [{"category": c, "count": n} for c, n in category_counts],
         "recent_issues": issues_data,
     }

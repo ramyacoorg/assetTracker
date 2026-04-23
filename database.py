@@ -1,11 +1,13 @@
 
-
 import os
+from dotenv import load_dotenv
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker, declarative_base
 
+load_dotenv()  # Load .env file
+
 _db_url_from_env = os.getenv("DATABASE_URL")
-DATABASE_URL = _db_url_from_env or "postgresql://postgres:Susheela200@localhost:5432/asset_tracker"
+DATABASE_URL = _db_url_from_env or "postgresql://postgres:susheela2003@db.glvsjlmobgertxkbbjwl.supabase.co:5432/postgres"
 
 # Only force SSL for cloud databases (Railway/Supabase), not local dev
 _connect_args = (

@@ -34,27 +34,32 @@ async def upload_photo(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
 ):
-    if not SUPABASE_KEY:
-        raise HTTPException(status_code=500, detail="SUPABASE_KEY not set in environment")
-
     contents = await photo.read()
     ext = photo.filename.split(".")[-1].lower()
     filename = f"user_{current_user.id}_{uuid.uuid4().hex}.{ext}"
 
-    # Upload to Supabase Storage
-    upload_url = f"{SUPABASE_URL}/storage/v1/object/{STORAGE_BUCKET}/{filename}"
-    headers = {
-        "Authorization": f"Bearer {SUPABASE_KEY}",
-        "Content-Type": photo.content_type or "image/jpeg",
-    }
+    if SUPABASE_KEY:
+        # Upload to Supabase Storage
+        upload_url = f"{SUPABASE_URL}/storage/v1/object/{STORAGE_BUCKET}/{filename}"
+        headers = {
+            "Authorization": f"Bearer {SUPABASE_KEY}",
+            "Content-Type": photo.content_type or "image/jpeg",
+        }
 
-    async with httpx.AsyncClient() as client:
-        response = await client.post(upload_url, content=contents, headers=headers)
-        if response.status_code not in (200, 201):
-            raise HTTPException(status_code=500, detail=f"Supabase upload failed: {response.text}")
+        async with httpx.AsyncClient() as client:
+            response = await client.post(upload_url, content=contents, headers=headers)
+            if response.status_code not in (200, 201):
+                raise HTTPException(status_code=500, detail=f"Supabase upload failed: {response.text}")
 
-    # Public URL
-    public_url = f"{SUPABASE_URL}/storage/v1/object/public/{STORAGE_BUCKET}/{filename}"
+        # Public URL
+        public_url = f"{SUPABASE_URL}/storage/v1/object/public/{STORAGE_BUCKET}/{filename}"
+    else:
+        # Local fallback
+        os.makedirs("uploads/profiles", exist_ok=True)
+        local_path = os.path.join("uploads/profiles", filename)
+        with open(local_path, "wb") as f:
+            f.write(contents)
+        public_url = f"http://localhost:8000/uploads/profiles/{filename}"
 
     # Save to DB
     current_user.photo_url = public_url

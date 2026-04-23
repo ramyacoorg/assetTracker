@@ -26,15 +26,27 @@ async def report_issue(
         contents = await photo.read()
         ext = photo.filename.split(".")[-1].lower()
         filename = f"issue_{uuid.uuid4().hex}.{ext}"
-        upload_url = f"{SUPABASE_URL}/storage/v1/object/{STORAGE_BUCKET}/{filename}"
-        headers = {
-            "Authorization": f"Bearer {SUPABASE_KEY}",
-            "Content-Type": photo.content_type or "image/jpeg",
-        }
-        async with httpx.AsyncClient() as client:
-            res = await client.post(upload_url, content=contents, headers=headers)
-            if res.status_code in (200, 201):
-                photo_url = f"{SUPABASE_URL}/storage/v1/object/public/{STORAGE_BUCKET}/{filename}"
+        
+        if SUPABASE_KEY:
+            upload_url = f"{SUPABASE_URL}/storage/v1/object/{STORAGE_BUCKET}/{filename}"
+            headers = {
+                "Authorization": f"Bearer {SUPABASE_KEY}",
+                "Content-Type": photo.content_type or "image/jpeg",
+            }
+            try:
+                async with httpx.AsyncClient() as client:
+                    res = await client.post(upload_url, content=contents, headers=headers)
+                    if res.status_code in (200, 201):
+                        photo_url = f"{SUPABASE_URL}/storage/v1/object/public/{STORAGE_BUCKET}/{filename}"
+            except Exception as e:
+                print(f"Failed to upload photo: {e}")
+        else:
+            # Local fallback for storing issue photos
+            os.makedirs("uploads/issues", exist_ok=True)
+            local_path = os.path.join("uploads/issues", filename)
+            with open(local_path, "wb") as f:
+                f.write(contents)
+            photo_url = f"http://localhost:8000/uploads/issues/{filename}"
 
     issue = models.AssetIssue(
         asset_id=asset_id,
@@ -51,7 +63,7 @@ async def report_issue(
     
     # Simulated Email Notification
     print("\n" + "="*50)
-    print("📧 [MOCK EMAIL SERVICE] -> Sent to: admins@optiasset.local")
+    print("📧 [MOCK EMAIL SERVICE] -> Sent to: admins@assentra.local")
     print(f"Subject: New Issue Reported - Asset #{issue.asset_id}")
     print(f"Body: User #{issue.employee_id} reported an issue with asset '{asset.asset_name if asset else 'Unknown'}'.")
     print(f"Description: {issue.issue_description}")
