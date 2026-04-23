@@ -1,7 +1,8 @@
 # main.py
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from sqlalchemy import text
 import os
 from routers import authentication, assets, users, profile, issues, dashboard, assignments, reports, audit, qr, hr
 
@@ -34,4 +35,12 @@ app.include_router(hr.router,             prefix="/api/hr",            tags=["hr
 
 @app.get("/")
 def root():
-    return {"message": "Assentra API running"}
+    return {"message": "Assentra API running", "status": "healthy"}
+
+@app.get("/api/health")
+def health_check(db = Depends(authentication.get_db)):
+    try:
+        db.execute(text("SELECT 1"))
+        return {"status": "ok", "database": "connected"}
+    except Exception as e:
+        return {"status": "error", "database": str(e)}
