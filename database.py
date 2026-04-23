@@ -6,12 +6,12 @@ from sqlalchemy.orm import sessionmaker, declarative_base
 
 load_dotenv()  # Load .env file
 
-_db_url_from_env = os.getenv("DATABASE_URL")
-if not _db_url_from_env:
-    raise RuntimeError("DATABASE_URL environment variable is not set!")
-DATABASE_URL = _db_url_from_env
+DATABASE_URL = os.getenv(
+    "DATABASE_URL",
+    "postgresql://postgres:susheela%402003@db.glvsjlmobgertxkbbjwl.supabase.co:5432/postgres"
+)
 
-# Always force SSL since we only use cloud Postgres (Supabase)
+# Always use SSL for Supabase cloud Postgres
 _connect_args = {"sslmode": "require", "options": "-c client_encoding=utf8"}
 
 engine = create_engine(
