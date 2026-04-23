@@ -14,7 +14,7 @@ _db_host     = os.getenv("DB_HOST",     "db.glvsjlmobgertxkbbjwl.supabase.co")
 _db_port     = os.getenv("DB_PORT",     "5432")
 _db_name     = os.getenv("DB_NAME",     "postgres")
 _db_user     = os.getenv("DB_USER",     "postgres")
-_db_password = os.getenv("DB_PASSWORD", "susheela@2003")
+_db_password = os.getenv("DB_PASSWORD", "ramyasuresh2003")
 
 _encoded_pw  = urllib.parse.quote(_db_password, safe="")
 DATABASE_URL = os.getenv("DATABASE_URL") or \
