@@ -7,7 +7,7 @@ import models
 
 router = APIRouter()
 
-RAILWAY_URL    = "https://assettracker-production-e745.up.railway.app"
+RAILWAY_URL    = os.getenv("RAILWAY_URL", "http://localhost:8000")
 SUPABASE_URL   = "https://glvsjlmobgertxkbbjwl.supabase.co"
 SUPABASE_KEY   = os.getenv("SUPABASE_KEY")
 STORAGE_BUCKET = "issue-photos"   # create this bucket in Supabase too
@@ -46,7 +46,7 @@ async def report_issue(
             local_path = os.path.join("uploads/issues", filename)
             with open(local_path, "wb") as f:
                 f.write(contents)
-            photo_url = f"http://localhost:8000/uploads/issues/{filename}"
+            photo_url = f"{RAILWAY_URL}/uploads/issues/{filename}"
 
     issue = models.AssetIssue(
         asset_id=asset_id,

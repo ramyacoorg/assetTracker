@@ -7,7 +7,7 @@ import models
 
 router = APIRouter()
 
-RAILWAY_URL    = "https://assettracker-production-e745.up.railway.app"
+RAILWAY_URL    = os.getenv("RAILWAY_URL", "http://localhost:8000")
 SUPABASE_URL   = "https://glvsjlmobgertxkbbjwl.supabase.co"
 SUPABASE_KEY   = os.getenv("SUPABASE_KEY")          # add this env var in Railway
 STORAGE_BUCKET = "profile-photos"                   # create this bucket in Supabase dashboard
@@ -59,7 +59,7 @@ async def upload_photo(
         local_path = os.path.join("uploads/profiles", filename)
         with open(local_path, "wb") as f:
             f.write(contents)
-        public_url = f"http://localhost:8000/uploads/profiles/{filename}"
+        public_url = f"{RAILWAY_URL}/uploads/profiles/{filename}"
 
     # Save to DB
     current_user.photo_url = public_url
