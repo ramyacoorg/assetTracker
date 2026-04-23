@@ -5,8 +5,51 @@ from fastapi.staticfiles import StaticFiles
 from sqlalchemy import text
 import os
 from routers import authentication, assets, users, profile, issues, dashboard, assignments, reports, audit, qr, hr
+import models
+from database import engine, Base
+
+# Create tables on startup
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Assentra API")
+
+@app.on_event("startup")
+def startup_populate():
+    from sqlalchemy.orm import Session
+    from database import SessionLocal
+    db: Session = SessionLocal()
+    try:
+        # Seed Roles if empty
+        if not db.query(models.Role).first():
+            admin_role = models.Role(id=1, role_name="admin")
+            emp_role   = models.Role(id=2, role_name="employee")
+            db.add_all([admin_role, emp_role])
+            db.commit()
+            print("Seeded default roles.")
+        
+        # Seed Permissions if empty
+        if not db.query(models.Permission).first():
+            perms = [
+                models.Permission(permission_name="add:asset"),
+                models.Permission(permission_name="edit:asset"),
+                models.Permission(permission_name="delete:asset"),
+                models.Permission(permission_name="view:reports"),
+                models.Permission(permission_name="manage:users")
+            ]
+            db.add_all(perms)
+            db.commit()
+            
+            # Admin gets all
+            admin = db.query(models.Role).filter(models.Role.id == 1).first()
+            if admin:
+                for p in perms:
+                    db.add(models.RolePermission(role_id=admin.id, permission_id=p.id))
+                db.commit()
+            print("Seeded default permissions.")
+    except Exception as e:
+        print(f"Startup seeding error: {e}")
+    finally:
+        db.close()
 
 app.add_middleware(
     CORSMiddleware,
